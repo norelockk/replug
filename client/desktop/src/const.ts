@@ -9,6 +9,7 @@ export const APP_SOCIALS: { [social: string]: object } = {
 export const APP_VERSION: number[] = [ 1, 0, 0 ];
 export const APP_CODENAME: VersionCodename = 'indev';
 export const APP_NAMESPACE: string = 'codes.dreamy.replug';
+export const APP_DEV_VERSION: number = process.env.DEV_VERSION;
 
 // For debug n' stuff.
 export const IS_PRODUCTION: boolean = process.env.NODE_ENV === 'production';

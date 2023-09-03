@@ -1,7 +1,11 @@
 const { defineConfig } = require('@vue/cli-service');
 const webpack = require('webpack');
-const BuildHashPlugin = require('build-hash-webpack-plugin');
-const fs = require('fs');
+
+const { GitRevisionPlugin } = require('git-revision-webpack-plugin');
+const gitRevisionPlugin = new GitRevisionPlugin();
+
+// const BuildHashPlugin = require('build-hash-webpack-plugin');
+// const fs = require('fs');
 
 module.exports = defineConfig({
   terser: {
@@ -14,11 +18,11 @@ module.exports = defineConfig({
       runtimeChunk: 'single',
     },
     plugins: [
-      new BuildHashPlugin({
-        filename: 'build-hash.json',
-      }),
+      // new BuildHashPlugin({
+      //   filename: 'build-hash.json',
+      // }),
       new webpack.DefinePlugin({
-        // 'process.env.BUILD_HASH': JSON.parse(fs.readFileSync('./build-hash.json', { encoding: 'utf-8'})).hash
+        'process.env.DEV_VERSION': JSON.stringify(gitRevisionPlugin.version()),
       })
     ]
   },

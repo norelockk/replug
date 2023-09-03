@@ -1,8 +1,6 @@
 <template>
   <div>
     <v-parallax
-      id='replug-parallax'
-      style='position: absolute; width: 100%;'
       src=''
     >
       <v-row

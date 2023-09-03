@@ -1,4 +1,4 @@
-import { APP_CODENAME, APP_SOCIALS, APP_VERSION } from '@/const';
+import { APP_CODENAME, APP_DEV_VERSION, APP_SOCIALS, APP_VERSION } from '@/const';
 import { AppLayout } from '@/types';
 import { Module } from 'vuex';
 
@@ -16,6 +16,7 @@ const module: Module<ModuleState, {}> = {
   state: {
     socials,
     version: {
+      hash: APP_DEV_VERSION,
       array: APP_VERSION,
       codename: APP_CODENAME,
     },
