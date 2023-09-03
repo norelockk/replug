@@ -1,0 +1,7 @@
+export enum SocketErrors {
+  ALREADY_CONNECTED,
+  CONNECTION_ERROR,
+  INVALID_TARGET,
+  NO_OVERRIDE,
+  PARSE_ERROR,
+}
