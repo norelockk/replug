@@ -1,8 +1,5 @@
 <template>
-  <v-footer
-    app
-    tile
-  >
+  <v-footer>
     <v-container>
       <v-layout
         fill-height
@@ -12,11 +9,32 @@
         <!-- More links btw -->
         <v-flex md-3 pt-5 pl-5 sm-6 xs-12>
           <h2 class='mb-3'>More</h2>
+
+          <v-card
+            class='white--text'
+            color='transparent'
+            max-width='400px'
+          >
+            <v-list-item
+              v-for="(link, index) in availableLandingRoutes"
+              :key="index"
+              :to="link.path"
+              color='white'
+            >
+              <v-list-item-title>
+                <v-icon>mdi-note-text</v-icon>&nbsp;
+                <span v-text='link.name'></span>
+              </v-list-item-title>
+            </v-list-item>
+          </v-card>
         </v-flex>
 
         <!-- Socials -->
         <v-flex md-3 pt-5 pl-5 sm-6 xs-12>
-          <h2 class='mb-3'>Socials</h2>
+          <h2 class='mb-3'>
+            <span>Socials</span>&nbsp;
+            <v-icon>mdi-open-in-new</v-icon>
+          </h2>
 
           <v-card
             class='white--text'
@@ -27,6 +45,7 @@
               v-for="(social, index) in socials"
               :key="index"
               :href="social.data.url"
+              color='white'
               target='_blank'
             >
               <v-list-item-title>
@@ -50,7 +69,7 @@
           >
             <span>&copy; {{ cy }} <strong>dreamy.codes</strong></span>
             <br>
-            <pre>v{{ vstr }}-{{ version.codename }}</pre>
+            <pre>v{{ version.array.join('.') }}-{{ version.codename }} / {{ version.hash }}</pre>
           </v-card-text>
         </v-flex>
       </v-layout>
@@ -59,21 +78,38 @@
 </template>
 
 <script lang='ts'>
-import { APP_VERSION } from '@/const';
-
 import Vue from 'vue';
+import { RouteConfig } from 'vue-router';
 import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   data: () => ({
     cy: new Date().getFullYear(),
-    vstr: APP_VERSION.join('.')
+    availableLandingRoutes: [] as RouteConfig[]
   }),
   computed: {
     ...mapGetters({
       socials: 'replug/socials',
       version: 'replug/version'
     })
+  },
+  methods: {
+    footerCreated(): void {
+      const routes = this.$router.options.routes;
+
+      for (const routeIndex in routes) {
+        const index: number = parseInt(routeIndex);
+        const route: RouteConfig = routes[index];
+
+        if (route.meta?.layout && route.meta?.slot)  {
+          if (route.meta.layout === 'landing' && route.meta?.slot === 'footer')
+            this.availableLandingRoutes.push(route);
+        }
+      }
+    }
+  },
+  created() {
+    this.footerCreated();
   }
 });
 </script>

@@ -1,221 +1,402 @@
-(function() {
-  const PLAYER_NAMESPACE = 'codes.dreamy.replug.players.youtube';
+(function () {
+  /**
+   * Class constructor
+   * @name Class
+   *
+   * @function
+   * @param {Function} _class - main class function
+   * @param {String|Function} [_type] - class type ('static' or 'singleton') or static function
+   * @param {Function} [_static] - static function if type is passed through, useful for 'singleton' type
+   */
+  window.Class = function (_class, _type, _static) {
+    const _this = this || window;
 
-  const PLAYER_STATES = {
-    [0]: 'ENDED',
-    [2]: 'PAUSED',
-    [1]: 'PLAYING',
-    [3]: 'BUFFERING',
-    [5]: 'CUED',
-    [-1]: 'UNSTARTED',
-  };
+    // Function.name ie12+ only
+    const _name = _class.name || _class.toString().match(/function ?([^\(]+)/)[1];
 
-  const getCurrentTimestamp = () => new Date().toISOString();
-
-  const LOG_LEVELS = {
-    INFO: 'INFO',
-    DEBUG: 'DEBUG',
-    ERROR: 'ERROR',
-    WARNING: 'WARNING',
-  };
-  
-  const log = (level, ...message) => {
-    const timestamp = getCurrentTimestamp();
-
-    console.log(`[${timestamp}] [${level}] [${PLAYER_NAMESPACE}]`, ...message);
-  };
-
-  const ready = () => {
-    source.postMessage(
-      JSON.stringify({
-        ready: true
-      }),
-      window.location.origin
-    );
-
-    log(LOG_LEVELS.INFO, 'Player is ready', data);
-  };
-
-  const playerReady = event => {
-    player.setVolume(data.volume);
-    event.target.playVideo();
-
-    ready();
-  };
-
-  const playerError = event => {
-    source.postMessage(
-      JSON.stringify({
-        error: true,
-        details: event.data
-      }),
-      window.location.origin
-    );
-    
-    log(LOG_LEVELS.ERROR, 'Player error', event.data);
-  };
-
-  const playerStateChange = event => {
-    if (!player) return;
-
-    const state = event.data;
-
-    if (this.lastState !== state) {
-      if (
-        (state === 2 || (state === 5 && this.lastState === 1)) &&
-        player.getDuration() - player.getCurrentTime() > 2
-      ) {
-        setTimeout(player.playVideo, 10);
-
-        ready();
-      } else if (state === 0) {
-        source.postMessage(
-          JSON.stringify({
-            ended: true
-          }),
-          window.location.origin
-        );
-      }
-
-      log(LOG_LEVELS.DEBUG, 'Player state changed from', PLAYER_STATES[this.lastState], 'to', PLAYER_STATES[state]);
-      this.lastState = state;
+    // Polymorphic if no type passed
+    if (typeof _type == 'function') {
+      _static = _type;
+      _type = null;
     }
-  };
 
-  const playerLoad = () => {
-    if (typeof script === 'undefined') {
-      const iscript = document.createElement('script');
-      iscript.src = '//www.youtube.com/iframe_api';
+    _type = (_type || '').toLowerCase();
 
-      const first = document.getElementsByTagName('script')[0];
-      first.parentNode.insertBefore(iscript, first);
+    // Instanced Class
+    if (!_type) {
+      _this[_name] = _class;
 
-      script = first;
-
-      log(LOG_LEVELS.INFO, 'Preparing player script');
+      // Initiate static function if passed through
+      _static && _static();
     } else {
-      if (player) {
-        player.loadVideoById({
-          width: '100%',
-          height: '100%',
-          events: playerEvents,
-          videoId: data.id,
-          playerVars: {
-            hd: 1,
-            rel: 0,
-            start: data.seek,
-            border: 0,
-            origin: window.location.origin,
-            autoplay: 1,
-            controls: 0,
-            showinfo: 0,
-            disablekb: 1,
-            playerapiid: 'player',
-            playsinline: 1,
-            enablejsapi: 1,
-            frameborder: 0,
-            modestbranding: 1,
-            iv_load_policy: 3,
-            cc_load_policy: 0,
-          },
-          startSeconds: data.seek,
-        });
 
-        ready();
+      // Static Class
+      if (_type == 'static') {
+        _this[_name] = new _class();
 
-        log(LOG_LEVELS.DEBUG, 'Player loaded data', data);
+        // Singleton Class
+      } else if (_type == 'singleton') {
+        _this[_name] = _class;
+
+        (function () {
+          let _instance;
+
+          _this[_name].instance = function (a, b, c) {
+            if (!_instance) _instance = new _class(a, b, c);
+            return _instance;
+          };
+        })();
+
+        // Initiate static function if passed through
+        _static && _static();
       }
     }
+
+    // Giving namespace classes reference to namespace
+    if (this && this !== window) this[_name]._namespace = this.__namespace;
   };
 
-  const playerEvents = {
-    onReady: playerReady,
-    onError: playerError,
-    onStateChange: playerStateChange
+  /**
+   * Object to attach global properties
+   * @name window.Global
+   */
+  window.Global = {};
+
+  Global.Origin = window.location.origin;
+
+  /**
+   * Utils
+   */
+  Global.Utils = {};
+
+  Global.Utils.isStringURL = function (str) {
+    const Pattern = /^(https?:\/\/)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,6})(\/[^\s]*)?$/;
+
+    return Pattern.test(str);
   };
 
-  const message = event => {
-    let json;
+  /**
+   * Require dependency
+   * @name requireDependency
+   * 
+   * @function
+   * @param {String} url
+   */
+  Global.Dependencies = {};
 
-    try {
-      json = JSON.parse(event.data);
-    } catch (e) {
-      throw e;
+  window.requireDependency = function (url) {
+    if (typeof url !== 'string')
+      return null;
+
+    const isURL = Global.Utils.isStringURL(url);
+
+    if (isURL) {
+      if (!(url in Global.Dependencies)) {
+        // Create an dependency script
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+
+        // Add dependency to object list
+        Global.Dependencies[url] = script;
+
+        // Insert dependency before the our script
+        const firstScript = document.getElementsByTagName('script')[0];
+        firstScript.parentNode.insertBefore(script, firstScript);
+
+        return firstScript;
+      }
+
+      // Dependency is already inserted so we don't need them anymore
+      return false;
     }
 
-    if (json && typeof json === 'object') {
-      switch (json.action) {
-        case 'load': {
-          source = event.source;
+    return null;
+  };
 
-          if (json.data) {
-            data = json.data;
-            playerLoad();
+  /**
+   * @copyright (c) dreamy.codes 2023
+   * @description Module for YouTube player
+   * @example Usage of Module
+   * 
+   * const iframe = document.getElementById('dyt_iframe');
+   * if (iframe) {
+   *  iframe.contentWindow.postMessage(
+   *    JSON.stringify(
+   *      {
+   *        data: {
+   *          id: '<video id>',
+   *          volume: 100 (or 'storage', so it loads from storage),
+   *          seek: 0
+   *        },
+   *        action: 'load'
+   *      }
+   *    ),
+   *    window.location.origin
+   *  );
+   */
+
+  // modules/DreamyStorage.js
+  Class(
+    function DreamyStorage() {
+      // Vars
+      this.ls = window.localStorage;
+      this.prefix = 'dreamy.ytp';
+
+      // Storage functions
+      this.get = function (key) {
+        const content = this.ls.getItem(this.prefix + ':' + key);
+
+        if (typeof content == 'string')
+          return content;
+
+        return null;
+      }
+
+      this.set = function (key, value) {
+        value = String(value);
+
+        const content = this.ls.getItem(this.prefix + ':' + key);
+
+        if (typeof content == 'string') {
+          if (content == value)
+            return false;
+
+          this.ls.setItem(this.prefix + ':' + key, value);
+        } else this.ls.setItem(this.prefix + ':' + key, value);
+      }
+
+      this.__init__ = function () {
+        const setup = {
+          muted: false,
+          volume: 100
+        }
+
+        for (const [key, value] of Object.entries(setup)) {
+          const alreadyExists = this.get(key) !== null;
+          if (alreadyExists)
+            continue;
+
+          this.set(key, String(value));
+        }
+      }
+
+      this.__init__();
+    }
+  );
+
+  // modules/YTPlayer.js
+  Class(
+    function YTPlayer() {
+      // Vars
+      this.data = undefined;
+      this.player = undefined;
+      this.source = undefined;
+      this.script = undefined;
+      this.storage = new DreamyStorage();
+
+      // YouTube player events
+      this.events = {
+        onReady: (function (event) {
+          if (this.player && this.source) {
+            const volume = typeof this.data.volume == 'string' && this.data.volume == 'storage' ?
+              Boolean(this.storage.get('muted')) || this.storage.get('volume') == 0 ?
+                0 : this.storage.get('volume') : this.data.volume;
+
+            this.player.setVolume(volume);
+            this.source.postMessage('yt:ready', Global.Origin);
+
+            event.target.playVideo();
           }
-          break;
+        }).bind(this),
+        onError: (function (event) {
+          this.source && this.source.postMessage('yt:error=' + event.data, Global.Origin);
+        }).bind(this),
+        onStateChange: (function (event) {
+          console.log('state changed', event.data);
+
+          if (this.player && this.source) {
+            const state = event.data;
+
+            if (this.last_state !== YTPlayer.States[state]) {
+              if (
+                (state == YTPlayer.States[2] || (state == YTPlayer.States[5] && this.last_state == YTPlayer.States[1])) &&
+                this.player.getDuration() - this.player.getCurrentTime() > 2
+              ) {
+                setTimeout(this.player.playVideo, 10);
+                this.source.postMessage('yt:ready', Global.Origin);
+              }
+
+              if (state == YTPlayer.States[0]) this.source.postMessage('yt:ended', Global.Origin);
+
+              this.last_state = YTPlayer.States[state];
+            }
+          }
+        }).bind(this)
+      };
+
+      // YouTube player settings
+      this.settings = {
+        width: '100%',
+        height: '100%',
+        events: this.events
+      };
+
+      // Function to load new player data
+      this.loadPlayerData = function () {
+        if (!this.player && typeof this.script == 'undefined') {
+          // Load YouTube IFrame API
+          this.script = requireDependency(window.location.protocol + '//www.youtube.com/iframe_api');
+          return;
         }
-        case 'play': {
-          if (player) player.playVideo();
-          break;
-        }
-        case 'stop': {
-          if (player) player.stopVideo();
-          break;
-        }
-        case 'unmute': {
-          if (player) player.unMute();
-          break;
-        }
-        case 'setVolume': {
-          if (player) player.setVolume(player.data.volume);
-          break;
-        }
-        case 'checkDuration': {
-          source.postMessage(
-            JSON.stringify({
-              duration: player.getDuration()
-            }),
-            window.location.origin
-          );
-          break;
-        }
-        default: if (json.action) return log(LOG_LEVELS.ERROR, 'Unknown message', json);
+
+        this.player && this.player.loadByVideoId({
+          ...this.settings,
+          videoId: this.data ? typeof this.data.id == 'string' ? this.data.id : 'QGsPhLVAdlw' : 'QGsPhLVAdlw',
+          playerVars: {
+            start: this.data ? this.data.seek || 0 : 0,
+            ...YTPlayer.Variables
+          }
+        });
       }
+
+      // Communication between application and player functions
+      this.listener = function (event) {
+        let json;
+
+        try {
+          json = JSON.parse(event.data);
+        } catch (e) {
+          throw 'Player did not handle the message because it is not a JSON';
+        }
+
+        if (json && typeof json == 'object') {
+          if (json.action) {
+            if (typeof this.source == 'undefined' || this.source !== event.source)
+              this.source = event.source;
+          }
+
+          switch (json.action) {
+            // Load the player or reload it by another video ID
+            case 'load': {
+              this.data = json.data;
+
+              // Load player
+              this.loadPlayerData();
+              break;
+            }
+            // Play the player video
+            case 'play': {
+              this.player && this.player.playVideo();
+              break;
+            }
+            // Pause/stop player video
+            case 'stop': {
+              this.player && this.player.stopVideo();
+              break;
+            }
+            // Unmute player
+            case 'unmute': {
+              this.player && this.player.unMute();
+              break;
+            }
+            // Check player duration
+            case 'duration': {
+              this.player && this.source && this.source.postMessage('yt:duration=' + this.player.getDuration(), Global.Origin);
+              break;
+            }
+            // Set player volume
+            case 'setVolume': {
+              const volume = typeof json.data.volume == 'string' && json.data.volume == 'storage' ?
+                Boolean(this.storage.get('muted')) || this.storage.get('volume') == 0 ?
+                  0 : this.storage.get('volume') : json.data.volume;
+
+              this.player && this.player.setVolume(volume);
+              break;
+            }
+          }
+        }
+      }
+
+      window.addEventListener('message', this.listener.bind(this), false);
+    },
+    () => {
+      // YouTube player states
+      YTPlayer.States = {};
+
+      YTPlayer.States[5] = 5; // CUED
+      YTPlayer.States[0] = 0; // ENDED
+      YTPlayer.States[2] = 2; // PAUSED
+      YTPlayer.States[1] = 1; // PLAYING
+      YTPlayer.States[3] = 3; // BUFFERING
+      YTPlayer.States[-1] = -1; // UNSTARTED
+
+      // YouTube player variables
+      YTPlayer.Variables = {};
+
+      YTPlayer.Variables.hd = 1;
+      YTPlayer.Variables.rel = 0;
+      YTPlayer.Variables.html5 = 1;
+      YTPlayer.Variables.border = 0;
+      YTPlayer.Variables.origin = Global.Origin;
+      YTPlayer.Variables.showinfo = 0;
+      YTPlayer.Variables.controls = 0;
+      YTPlayer.Variables.autoplay = 1;
+      YTPlayer.Variables.disablekb = 1;
+      YTPlayer.Variables.showsearch = 0;
+      YTPlayer.Variables.playerapiid = 'player';
+      YTPlayer.Variables.enablejsapi = 1;
+      YTPlayer.Variables.frameborder = 0;
+      YTPlayer.Variables.playsinline = 1;
+      YTPlayer.Variables.cc_load_policy = 0;
+      YTPlayer.Variables.iv_load_policy = 3;
+      YTPlayer.Variables.modestbranding = 1;
     }
+  );
+
+  const init = () => {
+    const p = new YTPlayer();
+
+    // Set global function to load YouTube Player by IFrame API
+    window.onYouTubeIframeAPIReady = function () {
+      if (p.player && p.player instanceof YT.Player) return;
+
+      p.player = new YT.Player('player', {
+        ...p.settings,
+        events: p.events,
+        videoId: p.data ? typeof p.data.id == 'string' ? p.data.id : 'QGsPhLVAdlw' : 'QGsPhLVAdlw',
+        playerVars: {
+          start: p.data ? p.data.seek || 0 : 0,
+          ...YTPlayer.Variables
+        }
+      });
+    }
+
+    // Prototype of algorithm to sync players between clients
+    const trackDuration = 220.021 * 1000; // Track duration in ms
+    console.log(trackDuration);
+
+    const startTime = Date.now();
+    console.log('Track started at', new Date(startTime).toLocaleTimeString());
+    
+    const calculate = () => {
+      const now = Date.now();
+      const elapsedTime = now - startTime;
+      const remainingTime = trackDuration - elapsedTime;
+    
+      console.log('Elapsed time:', ~~(elapsedTime / 1000), 's');
+      console.log('Remaining time:', ~~(remainingTime / 1000), 's');
+    
+      if (remainingTime <= 0) {
+        console.log('Track has ended');
+      } else {
+        console.log('Track ends in', remainingTime, 'ms');
+      }
+    };
+    
+    calculate();
+    setInterval(calculate, 1000);
   };
 
-  let data, player, source, script;
-
-  window.onYouTubeIframeAPIReady = () => {
-    player = new YT.Player('player', {
-      width: '100%',
-      height: '100%',
-      events: playerEvents,
-      videoId: data.id,
-      playerVars: {
-        hd: 1,
-        rel: 0,
-        html5: 1,
-        start: data.seek,
-        border: 0,
-        origin: window.location.origin,
-        showinfo: 0,
-        controls: 0,
-        autoplay: 1,
-        disablekb: 1,
-        showsearch: 0,
-        playerapiid: 'player',
-        enablejsapi: 1,
-        frameborder: 0,
-        playsinline: 1,
-        cc_load_policy: 0,
-        iv_load_policy: 3,
-        modestbranding: 1,
-      },
-    });
-
-    log(LOG_LEVELS.DEBUG, 'Player created');
-  };
-
-  window.addEventListener('message', message, false);
+  window.onload = init;
 })();

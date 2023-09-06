@@ -1,5 +1,7 @@
 <template>
   <div class='replug-landing-content'>
+    <RBackground />
+
     <transition name='fade' mode='out-in'>
       <router-view />
     </transition>
@@ -10,7 +12,9 @@
 import Vue from 'vue';
 
 export default Vue.extend({
-  
+  components: {
+    RBackground: async () => await import('../../RBackground.vue')    
+  }
 });
 </script>
 

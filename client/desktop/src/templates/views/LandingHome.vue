@@ -33,12 +33,13 @@
     </v-parallax>
 
     <!-- temp iframe -->
-    <!-- <iframe ref='iframe' frameborder='0' src='youtube.html'></iframe> -->
+    <iframe ref='iframe' frameborder='0' src='/players/youtube.html'></iframe>
   </div>
 </template>
 
 <script lang='ts'>
 import { IS_DEVELOPMENT } from '@/const';
+import { isIFrame, sendIFrameMessage } from '@/utils';
 import { mapGetters } from 'vuex';
 import Vue from 'vue';
 
@@ -51,12 +52,37 @@ export default Vue.extend({
       this.$store.commit('replug/setLayout', 'app');
 
       setTimeout(this.$store.commit, 3000, 'replug/setLayout', 'landing');
+    },
+    handleWM(event: Event): void {
+      console.log(event);
     }
   },
   computed: {
     ...mapGetters({
       socials: 'replug/socials'
     })
+  },
+  mounted() {
+    const { iframe } = this.$refs;
+
+    if (iframe && isIFrame(iframe as HTMLElement)) {
+      setTimeout(function() {
+        // @ts-ignore
+        sendIFrameMessage(
+          iframe as HTMLElement,
+          JSON.stringify({
+            data: {
+              id: 'uZ1hpeCUwN8',
+              seek: 0,
+              volume: 3
+            },
+            action: 'load'
+          })
+        );
+      }, 1000);
+    }
+
+    window.addEventListener('message', this.handleWM.bind(this), false);
   }
 });
 </script>

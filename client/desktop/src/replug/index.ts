@@ -34,7 +34,7 @@ export default class Replug {
   // private properties
   private static readonly renderElement: HTMLElement | Element | null = document.querySelector('#app') ?? document.getElementById('app');
 
-  constructor(private entrypoint: AppEntrypoint) {
+  constructor(public entrypoint: AppEntrypoint) {
     if (!(entrypoint instanceof AppEntrypoint))
       throw new ReplugError('Invalid entrypoint instance');
 

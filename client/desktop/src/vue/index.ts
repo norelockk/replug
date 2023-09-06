@@ -11,12 +11,12 @@ import AppRoot from '@/templates/App.vue';
 Vue.config.devtools = !!IS_DEVELOPMENT;
 Vue.config.productionTip = !!IS_PRODUCTION;
 
-export default class AppEntrypoint extends Vue {
-  // static properties
-  public static store: Store = new Store();
-  public static router: Router = new Router();
+Vue.use(require('vue-moment'));
 
-  // normal properties
+export const store: Store = new Store();
+export const router: Router = new Router();
+
+export default class AppEntrypoint extends Vue {
   public loaded: boolean = false;
   
   static construct(): AppEntrypoint {
@@ -27,8 +27,8 @@ export default class AppEntrypoint extends Vue {
     super({
       render: r => r(AppRoot),
       vuetify,
-      router: AppEntrypoint.router,
-      store: AppEntrypoint.store
+      router,
+      store
     });
   }
 }

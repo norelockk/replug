@@ -31,8 +31,13 @@ html {
   overflow-y: auto;
 }
 
+body {
+  background-color: #000;
+}
+
 .v-application {
   font-family: 'Poppins', sans-serif;
+  background-color: transparent !important;
 }
 </style>
 

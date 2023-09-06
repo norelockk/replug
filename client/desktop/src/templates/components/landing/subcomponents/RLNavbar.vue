@@ -57,8 +57,9 @@ export default Vue.extend({
         const index: number = parseInt(routeIndex);
         const route: RouteConfig = routes[index];
 
-        if (route.meta?.layout && route.meta.layout === 'landing')  {
-          this.availableLandingRoutes.push(route);
+        if (route.meta?.layout && route.meta?.slot)  {
+          if (route.meta.layout === 'landing' && route.meta?.slot === 'navbar')
+            this.availableLandingRoutes.push(route);
         }
       }
     }
@@ -71,9 +72,15 @@ export default Vue.extend({
 
 <style scoped>
 .v-app-bar {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-  backdrop-filter: blur(30px);
+  background-color: rgba(0, 0, 0, 0) !important;
+  transition: all 0.25s ease;
 }
+
+.v-app-bar.v-app-bar--is-scrolled {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(2.22px);
+}
+
 
 .replug-logo {
   font-family: 'Poppins', sans-serif;
