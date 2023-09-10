@@ -2,10 +2,8 @@ import has from 'has';
 import jwt from 'jsonwebtoken';
 import lodash from 'lodash';
 
-import { Request } from "express";
-import { Strategy, StrategyCreated, StrategyCreatedStatic } from 'passport';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
+import { Request } from 'express';
+import { Strategy } from 'passport';
 
 // Part of code has been taken from https://github.com/u-wave/core/blob/default/src/auth/JWTStrategy.js
 
