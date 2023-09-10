@@ -177,7 +177,7 @@ export default Vue.extend({
     termsLastUpdate: 1693717454230,
   }),
   components: {
-    RDocument: async () => await import('../components/RDocument.vue')
+    RDocument: async () => await import('@/templates/components/RDocument.vue')
   }
 });
 </script>

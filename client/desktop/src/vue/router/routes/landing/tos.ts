@@ -7,7 +7,7 @@ const route: RouteConfig = {
     slot: 'footer',
     layout: 'landing',
   },
-  component: async () => await import('@/templates/views/LandingTerms.vue')
+  component: async () => await import('@/templates/views/landing/LandingTerms.vue')
 };
 
 export default route;

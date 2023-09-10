@@ -8,7 +8,7 @@ Vue.use(VueRouter);
 
 // Load routes from the 'routes' directory
 const routesContext = require.context('./routes', true, /\.ts$/);
-const routes: RouteConfig[] = routesContext.keys().map((key: string) => routesContext(key)?.default || routesContext(key));
+let routes: RouteConfig[] = routesContext.keys().map((key: string) => routesContext(key)?.default || routesContext(key));
 
 interface RouteMiddleware {
   [key: string]: (to: RouteConfig, from: RouteConfig, next: () => void) => void;
@@ -29,16 +29,17 @@ export default class Router extends VueRouter {
   private readonly logger: Logger = new Logger(LogLevel.DEBUG, 'main.router');
 
   constructor() {
+    routes = routes.sort((a, b) => a.path.length - b.path.length);
+
     super({
       // mode: process.env.NODE_ENV === 'development' ? 'hash' : 'history',
       mode: 'hash',
       base: process.env.BASE_URL,
-      routes,
-      linkExactActiveClass: 'active',
+      routes
     });
 
-    this.beforeEach(this.beforeExecute.bind(this));
     this.afterEach(this.afterExecute.bind(this));
+    this.beforeEach(this.beforeExecute.bind(this));
 
     this.logger.debug('Router initialized');
 

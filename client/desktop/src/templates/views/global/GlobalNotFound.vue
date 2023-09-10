@@ -1,6 +1,8 @@
 <template>
-  <div class='replug-app'>
-    <RALoading />
+  <div>
+    <v-container>
+      <h1>Looks like we didn't found you wanted to found.</h1>
+    </v-container>
   </div>
 </template>
 
@@ -8,9 +10,6 @@
 import Vue from 'vue';
 
 export default Vue.extend({
-  components: {
-    RALoading: async () => await import('./subcomponents/RALoading.vue')
-  }
 });
 </script>
 

@@ -1,0 +1,1 @@
+export const LOADING_STORE_INITIALIZE: string = 'initialize';

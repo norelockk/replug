@@ -1,43 +1,25 @@
 <template>
-  <v-app-bar
-    app
-    dense
-    height='72px'
-    elevation='0'
-  >
-    <div class='rp-left hidden-sm-and-down'>
-      <v-btn
-        tile
-        plain
-        x-large
-        elevation='0'
-      >
-        <span>Action test</span>
-      </v-btn>
+  <v-app-bar app dense height='72px' elevation='0'>
+    <v-btn v-for='(route, index) in availableLandingActions' :to='route.path' style='height: 100%;' tile plain x-large
+      class='hidden-sm-and-down'
+      elevation='0'>
+      <span v-text='route.name'></span>
+    </v-btn>
 
-      <v-spacer />
-    </div>
+    <v-spacer class='hidden-sm-and-down' />
 
     <div class='d-flex align-center'>
       <h1 class='replug-logo'></h1>
     </div>
 
-    <div class='d-flex rp-right hidden-xs-only'>
-      <v-spacer />
+    <v-spacer class='hidden-xs-only' />
 
-      <v-btn
-        v-for='(route, index) in availableLandingRoutes'
-        :key='index'
-        :to='route.path'
-        tile
-        plain
-        class='hidden-xs-only'
-        x-large
-        elevation='0'
-      >
-        <span v-text='route.name'></span>
-      </v-btn>
-    </div>
+    <v-btn v-for='(route, index) in availableLandingRoutes' :to='route.path' :tile='route.path !== "/auth"'
+      :plain='route.path !== "/auth"' :rounded='route.path === "/auth"'
+      :color='route.path === "/auth" ? "blue darken-3" : "transparent"' elevation='0' class='hidden-xs-only'
+      :x-large='route.path !== "/auth"'>
+      <span v-text='route.name'></span>
+    </v-btn>
   </v-app-bar>
 </template>
 
@@ -48,6 +30,7 @@ import { RouteConfig } from 'vue-router';
 export default Vue.extend({
   data: () => ({
     availableLandingRoutes: [] as RouteConfig[],
+    availableLandingActions: [] as RouteConfig[],
   }),
   methods: {
     navbarCreated(): void {
@@ -57,11 +40,24 @@ export default Vue.extend({
         const index: number = parseInt(routeIndex);
         const route: RouteConfig = routes[index];
 
-        if (route.meta?.layout && route.meta?.slot)  {
-          if (route.meta.layout === 'landing' && route.meta?.slot === 'navbar')
-            this.availableLandingRoutes.push(route);
+        if (route.meta?.layout && route.meta?.slot) {
+          if (route.meta.layout !== 'landing') return;
+
+          switch (route.meta.slot) {
+            case 'navbar': {
+              this.availableLandingRoutes.push(route);
+              break;
+            }
+            case 'navbar-action': {
+              this.availableLandingActions.push(route);
+              break;
+            }
+          }
         }
       }
+
+      this.availableLandingRoutes = this.availableLandingRoutes.sort((a, b) => a.path.length - b.path.length);
+      this.availableLandingActions = this.availableLandingActions.sort((a, b) => a.path.length - b.path.length);
     }
   },
   created() {
@@ -91,15 +87,5 @@ export default Vue.extend({
 
 .replug-logo::before {
   content: 'replug';
-}
-
-.v-btn {
-  height: 100% !important;
-  background-color: transparent !important;
-}
-
-.rp-left, .rp-right {
-  width: 100%;
-  height: 100%;
 }
 </style>

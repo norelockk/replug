@@ -134,6 +134,7 @@
    *    ),
    *    window.location.origin
    *  );
+   *  window.addEventListener('message', this.handler, false);
    */
 
   // modules/DreamyStorage.js
